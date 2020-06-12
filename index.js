@@ -23,8 +23,17 @@ const Phone = async (phone) => {
     authType: "PHONE",
   });
   return async (code) => {
-    const user2 = await Auth.sendCustomChallengeAnswer(user, code);
-    return user2;
+    try {
+      user = await Auth.sendCustomChallengeAnswer(user, code);
+      if (user.challengeName === "CUSTOM_CHALLENGE") {
+        const e = new Error("Code failed but can try again");
+        e.tryAgain = true;
+        throw e;
+      }
+      return user;
+    } catch (e) {
+      throw e;
+    }
   };
 };
 module.exports = { Google, Apple, Phone };
