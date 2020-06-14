@@ -1,9 +1,11 @@
 const { Auth } = require("@aws-amplify/auth");
+const decode = require("jwt-decode");
 const initialChallenge = async (userString, authType) => {
   let user = await Auth.signIn(userString);
   if (user.getAuthenticationFlowType() !== "CUSTOM_AUTH") {
-    console.warn(user);
-    throw new Error("Did not get proper authentication flow");
+    const e = new Error("Did not get proper authentication flow");
+    e.user = user;
+    throw e;
   }
   if (user.challengeParam.authType !== "FIRST")
     throw new Error("Did not get proper authenticatication type response");
@@ -14,15 +16,17 @@ const initialChallenge = async (userString, authType) => {
     throw new Error("Did not get proper authentication challenge type");
   return user;
 };
-const Google = async (token) => {
+const Google = async (token, username) => {
   const { email } = decode(token);
-  const user = await initialChallenge(email, "GOOGLE");
-  user = await Auth.sendCustomChallengeAnswer(user, jwt);
+  if (!username) username = email;
+  let user = await initialChallenge(email, "GOOGLE");
+  user = await Auth.sendCustomChallengeAnswer(user, token);
   return user;
 };
-const Apple = async (token) => {
-  const { email } = decode(token);
-  const user = await initialChallenge(email, "APPLE");
+const Apple = async (jwt, username) => {
+  const { email } = decode(jwt);
+  if (!username) username = email;
+  let user = await initialChallenge(username, "APPLE");
   user = await Auth.sendCustomChallengeAnswer(user, jwt);
   return user;
 };
