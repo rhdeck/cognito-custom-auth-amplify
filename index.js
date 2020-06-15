@@ -62,4 +62,4 @@ const Email = async (email) => {
     }
   };
 };
-module.exports = { Google, Apple, Phone, Email };
+module.exports = { initialChallenge, Google, Apple, Phone, Email };
